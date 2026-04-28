@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIWA by Marriott — Venue Experience</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #C9A84C;
+      --gold-light: #E2C47A;
+      --gold-dim:   rgba(201,168,76,0.15);
+      --ivory:      #F9F6F0;
+      --charcoal:   #18160F;
+      --deep:       #0D0B06;
+      --muted:      #8A8070;
+      --border:     #DDD5C4;
+      --white:      #FFFFFF;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--deep);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      overflow: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* LEFT — viewer 60% */
+    .viewer-pane {
+      width: 60%;
+      flex-shrink: 0;
+      position: relative;
+      background: radial-gradient(ellipse at 30% 40%, #1e1608 0%, #0a0804 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .viewer-pane::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.07) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .viewer-wordmark {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .viewer-wordmark .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .viewer-wordmark .sub {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      --poster-color: transparent;
+      z-index: 2;
+    }
+
+    .viewer-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.25);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hint-line {
+      width: 24px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    #ar-button {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+      transition: background 0.2s, color 0.2s;
+    }
+    #ar-button:hover { background: var(--gold); color: var(--deep); }
+    #ar-button svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* RIGHT — info 40% */
+    .info-pane {
+      width: 40%;
+      background: var(--ivory);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+    }
+
+    .info-inner {
+      padding: 48px 36px 56px;
+      flex: 1;
+    }
+
+    .top-rule {
+      width: 40px;
+      height: 2px;
+      background: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .hotel-eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    .hotel-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px;
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--charcoal);
+      margin-bottom: 6px;
+    }
+
+    .hotel-name em {
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .hotel-location {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .hotel-location svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--gold);
+    }
+
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--charcoal);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── FEATURES ── */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 13px 16px;
+    }
+
+    .feature-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      width: 28px;
+      text-align: center;
+    }
+
+    .feature-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: 1px;
+    }
+
+    .feature-desc {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── TAGS ── */
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .event-tag {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--charcoal);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 14px;
+    }
+
+    .event-tag.highlight {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: #7A5A10;
+    }
+
+    /* ── CTA ── */
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cta-primary {
+      width: 100%;
+      background: var(--charcoal);
+      color: var(--gold);
+      border: none;
+      border-radius: 6px;
+      padding: 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .cta-primary:hover { background: #2a2820; }
+    .cta-primary:active { transform: scale(0.98); }
+
+    .cta-secondary {
+      width: 100%;
+      background: transparent;
+      color: var(--charcoal);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .cta-secondary:hover { border-color: var(--gold); color: #7A5A10; }
+    .cta-secondary:active { transform: scale(0.98); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+
+      .layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .viewer-pane {
+        width: 100%;
+        height: 55vh;
+        min-height: 340px;
+      }
+
+      .info-pane {
+        width: 100%;
+        overflow-y: visible;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+
+      .info-inner { padding: 32px 20px 48px; }
+      .hotel-name { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══ LEFT: 3D VIEWER ══ -->
+  <div class="viewer-pane">
+
+    <div class="viewer-wordmark">
+      <span class="brand">GIWA</span>
+      <span class="sub">by Marriott · Bali</span>
+    </div>
+
+    <!--
+      Upload both index.html and hotel_GIWA.glb into the same
+      GitHub repo folder. The src below matches your filename exactly.
+    -->
+    <model-viewer
+      src="hotel_GIWA.glb"
+      alt="GIWA by Marriott venue 3D model"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      auto-rotate-delay="1200"
+      rotation-per-second="8deg"
+      shadow-intensity="1.5"
+      shadow-softness="1"
+      exposure="1.1"
+      camera-orbit="30deg 65deg 120m"
+      min-camera-orbit="auto auto 10m"
+      max-camera-orbit="auto auto 500m"
+      ar-scale="fixed"
+      scale="1 1 1"
+      interaction-prompt="auto"
+      interaction-prompt-style="wiggle"
+    >
+      <button slot="ar-button" id="ar-button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 8V5a2 2 0 0 1 2-2h3M2 16v3a2 2 0 0 0 2 2h3M16 2h3a2 2 0 0 1 2 2v3M16 22h3a2 2 0 0 0 2-2v-3"/>
+          <rect x="7" y="7" width="10" height="10" rx="1"/>
+        </svg>
+        View in AR
+      </button>
+    </model-viewer>
+
+    <div class="viewer-hint">
+      <div class="hint-line"></div>
+      Drag · Orbit · Pinch to zoom
+      <div class="hint-line"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT: INFO PANE ══ -->
+  <div class="info-pane">
+    <div class="info-inner">
+
+      <div class="top-rule"></div>
+
+      <p class="hotel-eyebrow">Luxury Wedding Destination</p>
+      <h1 class="hotel-name">GIWA <em>by</em><br>Marriott</h1>
+
+      <div class="hotel-location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        Bali, Indonesia
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Key Stats -->
+      <p class="section-label">Venue Overview</p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">20,000</div>
+          <div class="stat-label">Square Feet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">250</div>
+          <div class="stat-label">Guest Rooms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">500+</div>
+          <div class="stat-label">Guest Capacity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">5★</div>
+          <div class="stat-label">Luxury Rating</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Venue Features -->
+      <p class="section-label">Venue Features</p>
+      <div class="features-list">
+        <div class="feature-row">
+          <span class="feature-icon">🌺</span>
+          <div>
+            <div class="feature-title">Balinese Garden Ceremony</div>
+            <div class="feature-desc">Open-air tropical garden with traditional décor</div>
+          </div>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">🏛️</span>
+          <div>
+            <div class="feature-title">Grand Ballroom</div>
+            <div class="feature-desc">Climate-controlled, seats up to 500 guests</div>
+          </div>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">🌊</span>
+          <div>
+            <div class="feature-title">Oceanfront Terrace</div>
+            <div class="feature-desc">Panoramic Indian Ocean views for receptions</div>
+          </div>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">🍽️</span>
+          <div>
+            <div class="feature-title">In-House Catering</div>
+            <div class="feature-desc">Bespoke menus by award-winning culinary team</div>
+          </div>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">🛎️</span>
+          <div>
+            <div class="feature-title">Dedicated Wedding Concierge</div>
+            <div class="feature-desc">Full-service planning from arrival to farewell</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Ideal For -->
+      <p class="section-label">Ideal For</p>
+      <div class="tags-wrap">
+        <span class="event-tag highlight">Destination Weddings</span>
+        <span class="event-tag highlight">Honeymoons</span>
+        <span class="event-tag">Corporate Retreats</span>
+        <span class="event-tag">Gala Dinners</span>
+        <span class="event-tag">Anniversary Celebrations</span>
+        <span class="event-tag">Private Events</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- CTA -->
+      <div class="cta-group">
+        <button class="cta-primary">Request a Proposal</button>
+        <button class="cta-secondary">Schedule a Virtual Tour</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
